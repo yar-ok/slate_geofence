@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Slate</string>
+    <string name="apply_settings">Apply settings</string>
+    <string name="empty_radius_field_error">Radius field cannot be empty</string>
+    <string name="proces_radius_error">Cannot process radius</string>
+    <string name="saved_settings_message">Settings saved successfully</string>
+    <string name="in_area_status">In area status:</string>
+    <string name="area_wifi_access_point_name">Area Wifi access point name</string>
+    <string name="area_radius_size_in_meters">Area radius size (in meters)</string>
 </resources>
