@@ -4,14 +4,12 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.widget.FrameLayout;
 
 import com.app.slate.R;
@@ -19,14 +17,16 @@ import com.app.slate.R;
 
 public class AreaOverlayView extends FrameLayout {
 
-    private static final float CENTRAL_POINT_RADIUS = 3;
+    public static final int OVERLAY_STROKE_COLOR = 0xFFFF0000;
+    public static final double TRANSPARENCY_MULTYPLIER = 0.4;
+    public static final int OVERLAY_AREA_COLOR = 0x66FF0000;
+    public static final int OVERLAY_STROKE_SIZE = 2;
 
     @Nullable
     private Bitmap windowFrame;
     private float radius = 0f;
     private int centerX = 0;
     private int centerY = 0;
-    private float pointRadius;
     private Paint drawingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     public AreaOverlayView(@NonNull Context context) {
@@ -51,7 +51,6 @@ public class AreaOverlayView extends FrameLayout {
     }
 
     private void initView(@NonNull Context context, @Nullable AttributeSet attrs) {
-        pointRadius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, CENTRAL_POINT_RADIUS, getResources().getDisplayMetrics());
         if (attrs != null) {
             TypedArray a = context.getTheme().obtainStyledAttributes(
                     attrs, R.styleable.AreaOverlayView, 0, 0);
@@ -98,17 +97,14 @@ public class AreaOverlayView extends FrameLayout {
             if (radius > 0) {
 
                 drawingPaint.setStyle(Paint.Style.STROKE);
-                drawingPaint.setColor(Color.RED);
+                drawingPaint.setColor(OVERLAY_STROKE_COLOR);
                 drawingPaint.setAlpha(200);
-                drawingPaint.setStrokeWidth(2);
+                drawingPaint.setStrokeWidth(OVERLAY_STROKE_SIZE);
                 osCanvas.drawCircle(centerX, centerY, radius, drawingPaint);
 
                 drawingPaint.setStyle(Paint.Style.FILL);
-                drawingPaint.setAlpha(100);
+                drawingPaint.setAlpha((int) (255 * TRANSPARENCY_MULTYPLIER));
                 osCanvas.drawCircle(centerX, centerY, radius, drawingPaint);
-
-                drawingPaint.setAlpha(255);
-                osCanvas.drawCircle(centerX, centerY, pointRadius, drawingPaint);
             }
         }
     }
