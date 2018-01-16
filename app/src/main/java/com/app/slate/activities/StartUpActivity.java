@@ -18,7 +18,6 @@ import com.app.slate.R;
 import com.app.slate.models.AreaLocationInfo;
 import com.app.slate.util.AppUtil;
 import com.app.slate.util.GeofenceManager;
-import com.app.slate.util.StorageManager;
 import com.app.slate.views.AreaOverlayView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -58,8 +57,8 @@ public class StartUpActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
+        AppUtil.updateMapMinZoom(googleMap);
         updateMapBySettings();
-        googleMap.setMinZoomPreference(googleMap.getMaxZoomLevel()/4);
         isMapAreaReady = true;
         invalidateOptionsMenu();
         areaOverlayView.setVisibility(View.VISIBLE);
@@ -75,7 +74,7 @@ public class StartUpActivity extends AppCompatActivity implements OnMapReadyCall
 
     private void updateUseLocationViewInfo() {
         if (locationAreaCheckbox != null) {
-            boolean isUse = StorageManager.getStorageManager().getUseLocationOption(this);
+            boolean isUse = geofenceManager.getUseLocationOption(this);
             locationAreaCheckbox.setChecked(isUse);
         }
     }
@@ -133,7 +132,7 @@ public class StartUpActivity extends AppCompatActivity implements OnMapReadyCall
         } else {
             geofenceManager.applyGeofenceLocation(this, null);
         }
-        StorageManager.getStorageManager().saveUseLocationOption(this, isUseLocation);
+        geofenceManager.saveUseLocationOption(this, isUseLocation);
         String wifiName = wifiNetworkNameEditText.getText().toString();
         geofenceManager.applyWifiNetworkName(this, wifiName);
         App.getApp().showToast(R.string.saved_settings_message);
