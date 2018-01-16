@@ -4,14 +4,17 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.app.slate.models.AreaLocationInfo;
+
 public class GeofenceManager {
 
     public static final float DEFAULT_GEOFENCE_RADIUS = 10000;
-    public static final float MINIMAL_GEOFENCE_RADIUS = 5000;
+    public static final float MINIMAL_GEOFENCE_RADIUS = 3;
 
     private static volatile GeofenceManager instanceGeofenceManager;
 
-    private float radius;
+    @Nullable
+    private AreaLocationInfo areaLocationInfo;
     @Nullable
     private String wifiAccessPointName;
 
@@ -29,21 +32,18 @@ public class GeofenceManager {
     }
 
     private GeofenceManager(@NonNull Context context) {
-        radius = getGeoFenceRadiusFromStorage(context);
+        areaLocationInfo = getGeoFenceLocationFromStorage(context);
         wifiAccessPointName = getWifiNetworkNameFromStorage(context);
     }
 
-    public void applyGeofenceRadius(@NonNull Context context, float radius) throws GeoFenceException{
-        if (radius >= MINIMAL_GEOFENCE_RADIUS) {
-            StorageManager.getStorageManager().saveRadius(context, radius);
-            this.radius = radius;
-        } else {
-            throw new GeoFenceException("Radius must be greater or equal "+MINIMAL_GEOFENCE_RADIUS);
-        }
+    public void applyGeofenceLocation(@NonNull Context context, @Nullable AreaLocationInfo locationInfo) {
+        areaLocationInfo = locationInfo;
+        StorageManager.getStorageManager().saveLocation(context, locationInfo);
     }
 
-    private float getGeoFenceRadiusFromStorage(@NonNull Context context){
-        return StorageManager.getStorageManager().getRadius(context);
+    @Nullable
+    private AreaLocationInfo getGeoFenceLocationFromStorage(@NonNull Context context){
+        return StorageManager.getStorageManager().getLocationInfo(context);
     }
 
     public void applyWifiNetworkName(@NonNull Context context, String wifiPointName){
@@ -56,9 +56,19 @@ public class GeofenceManager {
         return StorageManager.getStorageManager().getWifiNetwork(context);
     }
 
-    public boolean isInArea(float distanceCenterPointArea, @Nullable String currentWifiNetworkName) {
-        GeoFenceComparator geoFenceComparator = new GeoFenceComparator(radius, wifiAccessPointName, distanceCenterPointArea, currentWifiNetworkName);
+    public boolean isInArea(float currentLatitude, float currentLongitude, @Nullable String currentWifiNetworkName) {
+        GeoFenceComparator geoFenceComparator = new GeoFenceComparator(areaLocationInfo,
+                currentLatitude, currentLongitude, wifiAccessPointName, currentWifiNetworkName);
         return geoFenceComparator.isInArea();
     }
 
+    @Nullable
+    public AreaLocationInfo getAreaLocationInfo() {
+        return areaLocationInfo;
+    }
+
+    @Nullable
+    public String getWifiAccessPointName() {
+        return wifiAccessPointName;
+    }
 }

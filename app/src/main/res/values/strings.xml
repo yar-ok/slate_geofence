@@ -10,4 +10,6 @@
     <string name="location_security_excetion_toast">Cannot obtain location because of security permissions. Please, check app\'s permissions</string>
     <string name="slate_area_configurations">Slate area configurations</string>
     <string name="done">Done</string>
+    <string name="use_location_on_map_for_area">Use location on map for area</string>
+    <string name="area_info_location_save_error">Area info not loaded for save</string>
 </resources>

@@ -3,18 +3,22 @@ package com.app.slate.util;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.app.slate.models.AreaLocationInfo;
+
 public class GeoFenceComparator {
 
-    public final float distanceToPoint;
-    public final float settingsPointAreaRadius;
+    public final float currentLatitude;
+    public final float currentLongitude;
+    public final AreaLocationInfo areaLocationInfo;
     @Nullable
     public final String settingsPointWifiName;
     @Nullable
     public final String currentActiveWifiName;
 
-    public GeoFenceComparator(float settingsPointAreaRadius, @Nullable String settingsPointWifiName, float distanceToPoint, @Nullable String currentActiveWifiName) {
-        this.distanceToPoint = distanceToPoint;
-        this.settingsPointAreaRadius = settingsPointAreaRadius;
+    public GeoFenceComparator(@Nullable AreaLocationInfo areaLocationInfo, float currentLatitude, float currentLongitude, @Nullable String settingsPointWifiName, @Nullable String currentActiveWifiName) {
+        this.currentLatitude = currentLatitude;
+        this.currentLongitude = currentLongitude;
+        this.areaLocationInfo = areaLocationInfo;
         this.settingsPointWifiName = settingsPointWifiName;
         this.currentActiveWifiName = currentActiveWifiName;
     }
@@ -37,7 +41,11 @@ public class GeoFenceComparator {
     }
 
     public boolean isInAreaByDistance() {
-        return distanceToPoint <= settingsPointAreaRadius;
+        if (areaLocationInfo == null) {
+            return false;
+        }
+        double radius = AppUtil.distanceBetweenPoints(areaLocationInfo.getLatitude(), areaLocationInfo.getLongitude(), currentLatitude, currentLongitude);
+        return radius <= areaLocationInfo.getRadius();
     }
 
 

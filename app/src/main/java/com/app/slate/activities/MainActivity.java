@@ -9,7 +9,6 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -80,28 +79,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         radiusEditText = findViewById(R.id.radius_edit_text);
         statusView = findViewById(R.id.status_view);
         saveButton = findViewById(R.id.save_button);
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String radiusText = radiusEditText.getText().toString();
-                if (TextUtils.isEmpty(radiusText)) {
-                    App.getApp().showToast(R.string.empty_radius_field_error);
-                    return;
-                }
-                try {
-                    float radius = Float.parseFloat(radiusText);
-                    geofenceManager.applyGeofenceRadius(MainActivity.this, radius);
-                    String wifiName = wifiNetworkNameEditText.getText().toString();
-                    geofenceManager.applyWifiNetworkName(MainActivity.this, wifiName);
-                    App.getApp().showToast(R.string.saved_settings_message);
-                    updateAreaStatus();
-                } catch (NumberFormatException e) {
-                    App.getApp().showToast(R.string.proces_radius_error);
-                } catch (GeoFenceException e) {
-                    App.getApp().showToast(e.getMessage());
-                }
-            }
-        });
 
         locationCallback = new LocationCallback() {
             @Override
@@ -200,9 +177,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             double distanceBetweenPoints = AppUtil.distanceBetweenPoints((float) currentLocation.getLatitude(), (float) currentLocation.getLongitude(),
                     (float) centerArea.latitude, (float) centerArea.longitude);
             Log.e(TAG, "distanceBetweenPoints: " + (int) distanceBetweenPoints);
-            isAInArea = geofenceManager.isInArea((float) distanceBetweenPoints, activeWifiNetwork);
+            isAInArea = geofenceManager.isInArea((float) currentLocation.getLatitude(), (float) currentLocation.getLongitude(), activeWifiNetwork);
         } else {
-            isAInArea = geofenceManager.isInArea(Float.MAX_VALUE, activeWifiNetwork);
+            isAInArea = geofenceManager.isInArea(Float.MAX_VALUE, Float.MAX_VALUE, activeWifiNetwork);
         }
         drawViewByAreaStatus(isAInArea);
     }
