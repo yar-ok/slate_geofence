@@ -33,7 +33,7 @@ public class GeoFenceComparator {
         if (TextUtils.isEmpty(currentActiveWifiName)) {
             return false;
         }
-        return settingsPointWifiName.equals(currentActiveWifiName);
+        return settingsPointWifiName.equals(currentActiveWifiName) || ("\"" + settingsPointWifiName + "\"").equals(currentActiveWifiName);
     }
 
     public boolean isInAreaByDistance() {
