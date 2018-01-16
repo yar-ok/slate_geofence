@@ -1,6 +1,7 @@
 package com.app.slate.activities;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -10,17 +11,16 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.Log;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 
 import com.app.slate.App;
 import com.app.slate.R;
+import com.app.slate.models.AreaLocationInfo;
+import com.app.slate.util.AppDialogBuilder;
 import com.app.slate.util.AppUtil;
-import com.app.slate.util.GeoFenceException;
 import com.app.slate.util.GeofenceManager;
+import com.app.slate.views.AreaOverlayView;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -35,7 +35,6 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -48,14 +47,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
-    private static final String TAG = MainActivity.class.getSimpleName();
 
     private GoogleMap map;
-    private Circle circle;
 
-    private EditText wifiNetworkNameEditText;
-    private EditText radiusEditText;
-    private Button saveButton;
     private View statusView;
 
     private final GeofenceManager geofenceManager = GeofenceManager.getGeofenceManager(App.getApp());
@@ -65,6 +59,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationSettingsRequest locationSettingsRequest;
     private LocationCallback locationCallback;
     private Location currentLocation;
+    private AlertDialog permissionAlertDialog;
+    private boolean isNeedEnableLocation = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,28 +71,31 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         settingsClient = LocationServices.getSettingsClient(this);
-        wifiNetworkNameEditText = findViewById(R.id.wifi_network_name_edit_text);
-        radiusEditText = findViewById(R.id.radius_edit_text);
         statusView = findViewById(R.id.status_view);
-        saveButton = findViewById(R.id.save_button);
 
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 currentLocation = locationResult.getLastLocation();
-                Log.e(TAG,"got location: " + currentLocation.toString());
                 updateAreaStatus();
             }
         };
+        updateAreaStatus();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (isNeedCheckPermissions()) {
-            requestLocationPermissions();
-        } else  {
-            startLocationUpdates();
+        if (isNeedEnableLocation) {
+            if (isNeedCheckPermissions()) {
+                requestLocationPermissions();
+            } else {
+                startLocationUpdates();
+            }
+        } else {
+            if (permissionAlertDialog == null || !permissionAlertDialog.isShowing()) {
+                finish();
+            }
         }
     }
 
@@ -125,7 +124,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void startLocationUpdates() {
-        // Begin by checking if the device has the necessary location settings.
         buildLocationSettingsRequest();
         settingsClient.checkLocationSettings(locationSettingsRequest)
                 .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
@@ -134,6 +132,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         try {
                             fusedLocationProviderClient.requestLocationUpdates(locationRequest,
                                     locationCallback, Looper.myLooper());
+                            enableUserLocation();
                         } catch (SecurityException e){
                             App.getApp().showToast(R.string.location_security_excetion_toast);
                         }
@@ -142,22 +141,23 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 .addOnFailureListener(this, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        int statusCode = ((ApiException) e).getStatusCode();
-                        switch (statusCode) {
-                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-                                        "location settings ");
-                                try {
-                                    ResolvableApiException rae = (ResolvableApiException) e;
-                                    rae.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
-                                } catch (IntentSender.SendIntentException sie) {
-                                    Log.i(TAG, "PendingIntent unable to execute request.");
-                                }
-                                break;
-                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                App.getApp().showToast("Location settings are inadequate, and cannot be " +
-                                        "fixed here. Fix in Settings.");
-                               break;
+                        if (e instanceof ApiException) {
+                            int statusCode = ((ApiException) e).getStatusCode();
+                            switch (statusCode) {
+                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                    try {
+                                        ResolvableApiException rae = (ResolvableApiException) e;
+                                        rae.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+                                    } catch (IntentSender.SendIntentException sie) {
+                                        App.getApp().showToast(R.string.location_settings_available_error);
+                                    }
+                                    break;
+                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                    App.getApp().showToast(R.string.fix_location_settings_manually_message);
+                                    break;
+                            }
+                        }  else {
+                            App.getApp().showToast(R.string.location_settings_available_error);
                         }
                     }
                 });
@@ -166,17 +166,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean isNeedCheckPermissions() {
         int permissionState = ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION);
-        return permissionState == PackageManager.PERMISSION_GRANTED;
+        return permissionState != PackageManager.PERMISSION_GRANTED;
     }
 
     private void updateAreaStatus() {
         String activeWifiNetwork = AppUtil.getWifiActiveSsid(App.getApp());
-        boolean isAInArea = false;
-        if (currentLocation != null && circle != null) {
-            LatLng centerArea = circle.getCenter();
-            double distanceBetweenPoints = AppUtil.distanceBetweenPoints((float) currentLocation.getLatitude(), (float) currentLocation.getLongitude(),
-                    (float) centerArea.latitude, (float) centerArea.longitude);
-            Log.e(TAG, "distanceBetweenPoints: " + (int) distanceBetweenPoints);
+        boolean isAInArea;
+        if (currentLocation != null) {
             isAInArea = geofenceManager.isInArea((float) currentLocation.getLatitude(), (float) currentLocation.getLongitude(), activeWifiNetwork);
         } else {
             isAInArea = geofenceManager.isInArea(Float.MAX_VALUE, Float.MAX_VALUE, activeWifiNetwork);
@@ -192,20 +188,63 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    private void enableUserLocation() {
+        if (map != null) {
+            try {
+                map.setMyLocationEnabled(true);
+            } catch (SecurityException ignore) {
+
+            }
+        }
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
-        googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-            @Override
-            public void onMapLongClick(LatLng latLng) {
-                if (circle != null) {
-                    circle.remove();
-                }
-                circle = map.addCircle(new CircleOptions()
+        map.clear();
+        enableUserLocation();
+        AppUtil.updateMapMinZoom(map);
+        if (geofenceManager.getUseLocationOption(MainActivity.this)) {
+            AreaLocationInfo areaLocationInfo = GeofenceManager.getGeofenceManager(MainActivity.this).getAreaLocationInfo();
+            if (areaLocationInfo != null) {
+                LatLng latLng = new LatLng(areaLocationInfo.getLatitude(), areaLocationInfo.getLongitude());
+                map.addCircle(new CircleOptions()
                         .center(latLng)
-                        .radius(GeofenceManager.DEFAULT_GEOFENCE_RADIUS)
-                        .fillColor(Color.BLUE));
+                        .radius(areaLocationInfo.getRadius())
+                        .strokeWidth(AreaOverlayView.OVERLAY_STROKE_SIZE)
+                        .strokeColor(AreaOverlayView.OVERLAY_STROKE_COLOR)
+                        .fillColor(AreaOverlayView.OVERLAY_AREA_COLOR));
+                AppUtil.moveCameraByAreaLocationInfo(map, areaLocationInfo);
             }
-        });
+        }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == LOCATION_PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.length <= 0) {
+                processOnDeniedPermission();
+            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startLocationUpdates();
+            } else {
+                processOnDeniedPermission();
+            }
+        }
+    }
+
+    private void processOnDeniedPermission() {
+        isNeedEnableLocation = false;
+        if (permissionAlertDialog != null && permissionAlertDialog.isShowing()) {
+            permissionAlertDialog.dismiss();
+        }
+        permissionAlertDialog = new AppDialogBuilder().showInfoDialog(this, getString(R.string.attention),
+                getString(R.string.denided_permission_message), getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+    }
+
 }

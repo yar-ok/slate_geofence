@@ -12,4 +12,10 @@
     <string name="done">Done</string>
     <string name="use_location_on_map_for_area">Use location on map for area</string>
     <string name="area_info_location_save_error">Area info not loaded for save</string>
+    <string name="information_of_slate_area">Information of Slate area</string>
+    <string name="location_settings_available_error">Cannot check location settings</string>
+    <string name="location_settings_change_error">Cannot check location settings</string>
+    <string name="fix_location_settings_manually_message">Location settings updated by app. Fix in Settings.</string>
+    <string name="denided_permission_message">Need location permissions for work</string>
+    <string name="attention">Attention</string>
 </resources>
