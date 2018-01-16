@@ -8,8 +8,7 @@ import com.app.slate.models.AreaLocationInfo;
 
 public class GeofenceManager {
 
-    public static final float DEFAULT_GEOFENCE_RADIUS = 10000;
-    public static final float MINIMAL_GEOFENCE_RADIUS = 3;
+    public static final float DEFAULT_MAPS_ZOOM = 12.6f;
 
     private static volatile GeofenceManager instanceGeofenceManager;
 

@@ -48,9 +48,8 @@ public class AppUtil {
         googleMap.setMinZoomPreference(googleMap.getMaxZoomLevel() / 4);
     }
 
-    public static void moveCameraByAreaLocationInfo(@NonNull GoogleMap googleMap, @NonNull AreaLocationInfo areaLocationInfo){
-        LatLng latLng = new LatLng(areaLocationInfo.getLatitude(), areaLocationInfo.getLongitude());
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, areaLocationInfo.getZoom()));
+    public static void moveCameraByAreaLocationInfo(@NonNull GoogleMap googleMap, @NonNull LatLng latLng, float zoom){
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
     }
 
 }

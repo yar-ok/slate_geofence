@@ -64,6 +64,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Location currentLocation;
     private AlertDialog permissionAlertDialog;
     private boolean isNeedEnableLocation = true;
+    private boolean isNeedMoveCamera = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,12 +82,30 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             public void onLocationResult(LocationResult locationResult) {
                 currentLocation = locationResult.getLastLocation();
                 updateAreaStatus();
+                checkMoveCamera();
             }
         };
         updateAreaStatus();
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         registerReceiver(networkStateReceiver, filter);
+    }
+
+    private void checkMoveCamera(){
+        if(currentLocation == null || map == null || !isNeedMoveCamera){
+            return;
+        }
+        isNeedMoveCamera = false;
+        AreaLocationInfo areaLocationInfo = GeofenceManager.getGeofenceManager(MainActivity.this).getAreaLocationInfo();
+        if (areaLocationInfo == null) {
+            AppUtil.moveCameraByAreaLocationInfo(map,
+                    new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
+                    GeofenceManager.DEFAULT_MAPS_ZOOM);
+        } else {
+            AppUtil.moveCameraByAreaLocationInfo(map,
+                    new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
+                    areaLocationInfo.getRadius());
+        }
     }
 
     @Override
@@ -228,9 +247,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         .strokeWidth(AreaOverlayView.OVERLAY_STROKE_SIZE)
                         .strokeColor(AreaOverlayView.OVERLAY_STROKE_COLOR)
                         .fillColor(AreaOverlayView.OVERLAY_AREA_COLOR));
-                AppUtil.moveCameraByAreaLocationInfo(map, areaLocationInfo);
             }
         }
+        checkMoveCamera();
     }
 
     @Override
