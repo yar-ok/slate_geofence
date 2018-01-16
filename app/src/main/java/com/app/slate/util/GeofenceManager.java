@@ -34,7 +34,7 @@ public class GeofenceManager {
     }
 
     public void applyGeofenceRadius(@NonNull Context context, float radius) throws GeoFenceException{
-        if (radius > MINIMAL_GEOFENCE_RADIUS) {
+        if (radius >= MINIMAL_GEOFENCE_RADIUS) {
             StorageManager.getStorageManager().saveRadius(context, radius);
             this.radius = radius;
         } else {
