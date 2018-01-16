@@ -7,4 +7,5 @@
     <string name="in_area_status">In area status:</string>
     <string name="area_wifi_access_point_name">Area Wifi access point name</string>
     <string name="area_radius_size_in_meters">Area radius size (in meters)</string>
+    <string name="location_security_excetion_toast">Cannot obtain location because of security permissions. Please, check app\'s permissions</string>
 </resources>

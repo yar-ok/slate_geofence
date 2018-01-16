@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -64,6 +65,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationRequest locationRequest;
     private LocationSettingsRequest locationSettingsRequest;
     private LocationCallback locationCallback;
+    private Location currentLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,11 +106,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                super.onLocationResult(locationResult);
+                currentLocation = locationResult.getLastLocation();
+                Log.e(TAG,"got location: " + currentLocation.toString());
+                updateAreaStatus();
             }
         };
-
-       // updateAreaStatus();
     }
 
     @Override
@@ -137,27 +139,27 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void buildLocationSettingsRequest() {
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
-        builder.addLocationRequest(locationRequest);
-        locationSettingsRequest = builder.build();
+        if (locationSettingsRequest == null) {
+            checkLocationRequest();
+            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+            builder.addLocationRequest(locationRequest);
+            locationSettingsRequest = builder.build();
+        }
     }
 
     private void startLocationUpdates() {
         // Begin by checking if the device has the necessary location settings.
-        checkLocationRequest();
+        buildLocationSettingsRequest();
         settingsClient.checkLocationSettings(locationSettingsRequest)
                 .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-
-                        //noinspection MissingPermission
                         try {
                             fusedLocationProviderClient.requestLocationUpdates(locationRequest,
                                     locationCallback, Looper.myLooper());
-                        }catch (SecurityException e){
-
+                        } catch (SecurityException e){
+                            App.getApp().showToast(R.string.location_security_excetion_toast);
                         }
-
                     }
                 })
                 .addOnFailureListener(this, new OnFailureListener() {
@@ -169,8 +171,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
                                         "location settings ");
                                 try {
-                                    // Show the dialog by calling startResolutionForResult(), and check the
-                                    // result in onActivityResult().
                                     ResolvableApiException rae = (ResolvableApiException) e;
                                     rae.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
                                 } catch (IntentSender.SendIntentException sie) {
@@ -194,7 +194,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void updateAreaStatus() {
         String activeWifiNetwork = AppUtil.getWifiActiveSsid(App.getApp());
-        boolean isAInArea = geofenceManager.isInArea(1000, activeWifiNetwork);
+        boolean isAInArea = false;
+        if (currentLocation != null && circle != null) {
+            LatLng centerArea = circle.getCenter();
+            double distanceBetweenPoints = AppUtil.distanceBetweenPoints((float) currentLocation.getLatitude(), (float) currentLocation.getLongitude(),
+                    (float) centerArea.latitude, (float) centerArea.longitude);
+            Log.e(TAG, "distanceBetweenPoints: " + (int) distanceBetweenPoints);
+            isAInArea = geofenceManager.isInArea((float) distanceBetweenPoints, activeWifiNetwork);
+        } else {
+            isAInArea = geofenceManager.isInArea(Float.MAX_VALUE, activeWifiNetwork);
+        }
         drawViewByAreaStatus(isAInArea);
     }
 
