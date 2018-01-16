@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="default_views_margin">10dp</dimen>
+    <dimen name="default_views_margin">15dp</dimen>
     <dimen name="area_sign_view_size">20dp</dimen>
+    <dimen name="start_up_header_text_size">18sp</dimen>
 </resources>
