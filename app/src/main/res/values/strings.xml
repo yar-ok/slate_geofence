@@ -18,4 +18,5 @@
     <string name="fix_location_settings_manually_message">Location settings updated by app. Fix in Settings.</string>
     <string name="denided_permission_message">Need location permissions for work</string>
     <string name="attention">Attention</string>
+    <string name="wifi_required_on_disabled_area_message">Wifi access point required when location area disabled</string>
 </resources>

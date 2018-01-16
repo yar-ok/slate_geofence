@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -119,6 +120,7 @@ public class StartUpActivity extends AppCompatActivity implements OnMapReadyCall
             App.getApp().showToast(R.string.area_info_location_save_error);
            return;
         }
+        String wifiName = wifiNetworkNameEditText.getText().toString();
         if (isUseLocation) {
             LatLng center = googleMap.getProjection().fromScreenLocation(
                     new Point(areaOverlayView.getCenterX(), areaOverlayView.getCenterY()));
@@ -130,10 +132,13 @@ public class StartUpActivity extends AppCompatActivity implements OnMapReadyCall
             areaLocationInfo.setZoom(googleMap.getCameraPosition().zoom);
             geofenceManager.applyGeofenceLocation(this, areaLocationInfo);
         } else {
+            if(TextUtils.isEmpty(wifiName)){
+                App.getApp().showToast(R.string.wifi_required_on_disabled_area_message);
+                return;
+            }
             geofenceManager.applyGeofenceLocation(this, null);
         }
         geofenceManager.saveUseLocationOption(this, isUseLocation);
-        String wifiName = wifiNetworkNameEditText.getText().toString();
         geofenceManager.applyWifiNetworkName(this, wifiName);
         App.getApp().showToast(R.string.saved_settings_message);
         startActivity(new Intent(this, MainActivity.class));
