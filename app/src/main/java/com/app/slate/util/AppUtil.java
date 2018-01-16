@@ -7,6 +7,11 @@ import android.net.wifi.WifiManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.app.slate.models.AreaLocationInfo;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+
 public class AppUtil {
 
     private static final double EARTH_RADIUS = 6366000;
@@ -37,6 +42,15 @@ public class AppUtil {
         double t3 = Math.sin(a1) * Math.sin(b1);
         double tt = Math.acos(t1 + t2 + t3);
         return EARTH_RADIUS * tt;
+    }
+
+    public static void updateMapMinZoom(@NonNull GoogleMap googleMap) {
+        googleMap.setMinZoomPreference(googleMap.getMaxZoomLevel() / 4);
+    }
+
+    public static void moveCameraByAreaLocationInfo(@NonNull GoogleMap googleMap, @NonNull AreaLocationInfo areaLocationInfo){
+        LatLng latLng = new LatLng(areaLocationInfo.getLatitude(), areaLocationInfo.getLongitude());
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, areaLocationInfo.getZoom()));
     }
 
 }
