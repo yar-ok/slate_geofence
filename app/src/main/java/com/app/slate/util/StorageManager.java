@@ -7,7 +7,7 @@ import android.support.annotation.Nullable;
 
 import com.app.slate.models.AreaLocationInfo;
 
-public class StorageManager {
+class StorageManager {
 
     private static final String PREF_FILE_NAME = "pref_settings";
     private static final String GEO_FENCE_RADIUS_KEY = "radius";
@@ -43,7 +43,9 @@ public class StorageManager {
         if (radius == Float.MIN_VALUE || latitude == Float.MIN_VALUE || longitude == Float.MIN_VALUE || zoom == Float.MIN_VALUE) {
             return null;
         }
-        return new AreaLocationInfo(radius, latitude, longitude);
+        AreaLocationInfo locationInfo = new AreaLocationInfo(radius, latitude, longitude);
+        locationInfo.setZoom(zoom);
+        return locationInfo;
     }
 
     @Nullable
@@ -51,7 +53,6 @@ public class StorageManager {
         return context.getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE).getString(WIFI_KEY, null);
     }
 
-    @Nullable
     public boolean getUseLocationOption(@NonNull Context context){
         return context.getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE).getBoolean(USE_LOCATION_OPTION_KEY, true);
     }

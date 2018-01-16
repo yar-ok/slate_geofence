@@ -71,4 +71,12 @@ public class GeofenceManager {
     public String getWifiAccessPointName() {
         return wifiAccessPointName;
     }
+
+    public boolean getUseLocationOption(@NonNull Context context){
+        return StorageManager.getStorageManager().getUseLocationOption(context);
+    }
+
+    public void saveUseLocationOption(@NonNull Context context, boolean useLocationOption) {
+        StorageManager.getStorageManager().saveUseLocationOption(context, useLocationOption);
+    }
 }
