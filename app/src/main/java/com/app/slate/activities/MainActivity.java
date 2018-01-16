@@ -1,10 +1,13 @@
 package com.app.slate.activities;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -81,6 +84,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         };
         updateAreaStatus();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        registerReceiver(networkStateReceiver, filter);
     }
 
     @Override
@@ -98,6 +104,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     }
+
+    private BroadcastReceiver networkStateReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+           updateAreaStatus();
+        }
+    };
 
     private void requestLocationPermissions() {
         ActivityCompat.requestPermissions(MainActivity.this,
@@ -245,6 +259,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         finish();
                     }
                 });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkStateReceiver);
     }
 
 }
