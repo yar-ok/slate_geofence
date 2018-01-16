@@ -11,10 +11,15 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.app.slate.App;
@@ -43,7 +48,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSIONS_REQUEST_CODE = 80;
     private static final int REQUEST_CHECK_SETTINGS = 90;
@@ -70,6 +75,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        configureActionBar(toolbar);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map_fragment);
         mapFragment.getMapAsync(this);
@@ -91,21 +99,24 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         registerReceiver(networkStateReceiver, filter);
     }
 
+    private void configureActionBar(@Nullable Toolbar toolbar){
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(false);
+        }
+        if (toolbar != null) {
+            toolbar.setNavigationIcon(R.drawable.ic_action_back);
+        }
+    }
+
     private void checkMoveCamera(){
         if(currentLocation == null || map == null || !isNeedMoveCamera){
             return;
         }
         isNeedMoveCamera = false;
-        AreaLocationInfo areaLocationInfo = GeofenceManager.getGeofenceManager(MainActivity.this).getAreaLocationInfo();
-        if (areaLocationInfo == null) {
-            AppUtil.moveCameraByAreaLocationInfo(map,
-                    new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
-                    GeofenceManager.DEFAULT_MAPS_ZOOM);
-        } else {
-            AppUtil.moveCameraByAreaLocationInfo(map,
-                    new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
-                    areaLocationInfo.getRadius());
-        }
+        AppUtil.moveCameraByAreaLocationInfo(map,
+                new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
+                GeofenceManager.DEFAULT_MAPS_ZOOM);
     }
 
     @Override
@@ -278,6 +289,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         finish();
                     }
                 });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

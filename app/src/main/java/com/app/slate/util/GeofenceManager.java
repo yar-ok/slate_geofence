@@ -8,7 +8,7 @@ import com.app.slate.models.AreaLocationInfo;
 
 public class GeofenceManager {
 
-    public static final float DEFAULT_MAPS_ZOOM = 12.6f;
+    public static final float DEFAULT_MAPS_ZOOM = 15f;
 
     private static volatile GeofenceManager instanceGeofenceManager;
 

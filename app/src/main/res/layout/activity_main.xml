@@ -6,26 +6,23 @@
     android:layout_height="match_parent"
     tools:context="com.app.slate.activities.MainActivity">
 
-    <TextView
-        android:textSize="@dimen/start_up_header_text_size"
-        android:gravity="center"
-        android:layout_marginTop="@dimen/default_views_margin"
-        android:layout_marginStart="@dimen/default_views_margin"
-        android:id="@+id/main_header_text_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/information_of_slate_area"
-        app:layout_constraintHorizontal_bias="0.0"
+    <android.support.v7.widget.Toolbar
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@id/toolbar"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/AppTheme.ToolbarIcons"
+        android:layout_width="match_parent"
+        app:titleTextAppearance="@style/Toolbar.TitleText"
+        android:layout_height="?attr/actionBarSize"/>
 
     <TextView
         android:layout_margin="@dimen/default_views_margin"
         android:id="@+id/area_info_text_view"
         android:text="@string/in_area_status"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/main_header_text_view"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
