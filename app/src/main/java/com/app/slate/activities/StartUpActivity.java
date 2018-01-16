@@ -48,6 +48,9 @@ public class StartUpActivity extends AppCompatActivity implements OnMapReadyCall
         Toolbar toolbar = findViewById(R.id.toolbar);
         wifiNetworkNameEditText = findViewById(R.id.wifi_network_name_edit_text);
         setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(R.string.configuration);
+        }
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map_fragment);
         mapFragment.getMapAsync(this);
